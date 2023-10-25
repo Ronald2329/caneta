@@ -11,6 +11,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  *
@@ -20,6 +23,47 @@ public class menu extends javax.swing.JFrame {
     Caneta caneta = new Caneta();
     ArrayList<Caneta> canetas = new ArrayList();
     DefaultComboBoxModel modelo;
+
+    private void salvarEmCSV() {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter("canetas.csv"))) {
+        // Escreve o cabeçalho
+        writer.write("Modelo,Cor,Ponta,Carga,Estado\n");
+
+        // Escreve os dados das canetas
+        for (Caneta c : canetas) {
+            writer.write(c.getModelo() + "," + c.getCor() + "," + c.getPonta() + "," + c.getCarga() + "," + (c.isTampada() ? "Tampada" : "Destampada") + "\n");
+        }
+
+        JOptionPane.showMessageDialog(this, "Canetas salvas em canetas.csv");
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Erro ao salvar em CSV: " + e.getMessage());
+    }
+}
+
+    private void carregarDeCSV() {
+    try (BufferedReader reader = new BufferedReader(new FileReader("canetas.csv"))) {
+        String line;
+        // Pula a primeira linha (cabeçalho)
+        reader.readLine();
+
+        while ((line = reader.readLine()) != null) {
+            String[] data = line.split(",");
+            Caneta caneta = new Caneta();
+            caneta.setModelo(data[0]);
+            caneta.setCor(data[1]);
+            caneta.setPonta(Float.parseFloat(data[2]));
+            caneta.setCarga(Integer.parseInt(data[3]));
+            caneta.setTampada(data[4].equals("Tampada"));
+
+            canetas.add(caneta);
+            modelo.addElement(caneta);
+        }
+
+        JOptionPane.showMessageDialog(this, "Canetas carregadas de canetas.csv");
+    } catch (IOException e) {
+        JOptionPane.showMessageDialog(this, "Erro ao carregar de CSV: " + e.getMessage());
+    }
+}
 
     public menu() {
         initComponents();
@@ -37,6 +81,7 @@ public class menu extends javax.swing.JFrame {
         grupoTampa.add(radioDestampada);
         
       modelo = (DefaultComboBoxModel) cbCaneta.getModel();
+      carregarDeCSV(); // Carrega os dados ao iniciar o programa
     }
 
     /**
@@ -438,6 +483,7 @@ public class menu extends javax.swing.JFrame {
 
     private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
         // TODO add your handling code here:
+            salvarEmCSV();
         System.exit(0);
     }//GEN-LAST:event_btnSairActionPerformed
 
